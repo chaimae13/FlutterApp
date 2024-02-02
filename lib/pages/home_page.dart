@@ -49,7 +49,7 @@ class HomePage extends StatelessWidget {
                 title: Text('Tracking'),
                 leading: Icon(Icons.track_changes),
                 onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => TRUCKING()));
+                  Navigator.push(context, MaterialPageRoute(builder: (context) => TRACKING()));
                 },
               ),
             ),
