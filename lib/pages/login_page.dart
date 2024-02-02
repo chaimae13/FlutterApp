@@ -1,18 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  _LoginPageState createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends State<LoginPage> with SingleTickerProviderStateMixin {
+  // Create separate controllers for each field
+  final TextEditingController _controllerFullName = TextEditingController();
   final TextEditingController _controllerEmail = TextEditingController();
   final TextEditingController _controllerPassword = TextEditingController();
+  final TextEditingController _controllerSignInEmail = TextEditingController();
+  final TextEditingController _controllerSignInPassword = TextEditingController();
+  TabController? _tabController;
   String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController?.dispose();
+    super.dispose();
+  }
 
   Future<void> signIn() async {
     try {
@@ -40,25 +56,57 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Widget _emailField() {
-    return TextField(
-      controller: _controllerEmail,
-      decoration: InputDecoration(
-        labelText: 'Email',
-        prefixIcon: Icon(Icons.email, color: Colors.blue),
+  InputDecoration _inputDecoration(String hintText, IconData icon) {
+    return InputDecoration(
+      hintText: hintText,
+      prefixIcon: Icon(icon, color: Colors.grey),
+      filled: true,
+      fillColor: Colors.white,
+      contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 10),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide.none,
       ),
-      keyboardType: TextInputType.emailAddress,
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(30),
+        borderSide: BorderSide(color: Colors.red, width: 1),
+      ),
     );
   }
 
-  Widget _passwordField() {
-    return TextField(
-      controller: _controllerPassword,
-      decoration: InputDecoration(
-        labelText: 'Password',
-        prefixIcon: Icon(Icons.lock, color: Colors.blue),
+  Widget _buildTextField({
+    required String hintText,
+    required IconData icon,
+    required TextEditingController controller, // Add this parameter
+    bool isPassword = false,
+  }) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(30),
       ),
-      obscureText: true,
+      child: TextField(
+        controller: controller, // Use the passed controller here
+        decoration: _inputDecoration(hintText, icon),
+        obscureText: isPassword,
+      ),
+    );
+  }
+
+  Widget _buildButton({required String text, required VoidCallback onPressed}) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 20),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        child: Text(text),
+        style: ElevatedButton.styleFrom(
+          shape: StadiumBorder(),
+          primary: Colors.blue,
+          padding: EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
     );
   }
 
@@ -66,45 +114,117 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Contact Tracing App', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.teal, // Change app bar color
+        title: Text('Login / Register'),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          tabs: [
+            Tab(text: 'Sign Up'),
+            Tab(text: 'Sign In'),
+          ],
+        ),
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildSignUp(),
+          _buildSignIn(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSignUp() {
+    return ListView(
+      padding: EdgeInsets.all(20),
+      children: [
+        _buildTextField(
+          hintText: 'Full Name',
+          icon: Icons.person,
+          controller: _controllerFullName, // Use the new controller
+        ),
+        _buildTextField(
+          hintText: 'Email',
+          icon: Icons.email,
+          controller: _controllerEmail, // Use the email controller
+        ),
+        _buildTextField(
+          hintText: 'Password',
+          icon: Icons.lock,
+          controller: _controllerPassword, // Use the password controller
+          isPassword: true,
+        ),
+        _buildButton(text: 'Sign Up', onPressed: register),
+        // ... rest of your widgets ...
+      ],
+    );
+  }
+
+
+  Widget _buildSignIn() {
+    bool _isRememberMeChecked = false; // You might want to manage this state at a higher level
+
+    // Function to toggle the 'Remember me' checkbox state
+    void _toggleRememberMe(bool? value) {
+      setState(() {
+        _isRememberMeChecked = value ?? false;
+      });
+      // You can also handle the logic to remember the user here
+    }
+
+    return ListView(
+      padding: EdgeInsets.all(20),
+      children: [
+        _buildTextField(
+          hintText: 'Email',
+          icon: Icons.email,
+          controller: _controllerSignInEmail, // Use the sign-in email controller
+        ),
+        _buildTextField(
+          hintText: 'Password',
+          icon: Icons.lock,
+          controller: _controllerSignInPassword, // Use the sign-in password controller
+          isPassword: true,
+        ),
+        Padding(
+          padding: EdgeInsets.only(
+              left: 20.0, right: 20.0, top: 10.0, bottom: 5.0),
+          child: Row(
             children: [
-              Text(
-                'Welcome to the Contact Tracing App!',
-                style: TextStyle(fontSize: 24),
-                textAlign: TextAlign.center,
+              Checkbox(
+                value: _isRememberMeChecked,
+                onChanged: _toggleRememberMe,
+                activeColor: Colors.blue, // Replace with your color
               ),
-              SizedBox(height: 16),
-              _emailField(),
-              SizedBox(height: 16),
-              _passwordField(),
-              if (errorMessage.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(errorMessage, style: TextStyle(color: Colors.red)),
+              Text('Remember me'),
+              Spacer(),
+              // Use Spacer to push the next widget to the end of the row
+              GestureDetector(
+                onTap: () {
+                  // Handle 'Forgot Password?' tap
+                },
+                child: Text(
+                  'Forgot Password?',
+                  style: TextStyle(
+                    color: Colors.blue, // Replace with your color
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: signIn,
-                style: ElevatedButton.styleFrom(primary: Colors.teal),
-                child: Text('Login', style: TextStyle(color: Colors.white)),
-              ),
-              SizedBox(height: 8),
-              TextButton(
-                onPressed: register,
-                style: TextButton.styleFrom(primary: Colors.blue),
-                child: Text('Don\'t have an account? Register here'),
               ),
             ],
           ),
         ),
-      ),
+        _buildButton(text: 'Sign In', onPressed: signIn),
+        if (errorMessage.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 10.0),
+            child: Text(
+              errorMessage,
+              style: TextStyle(color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+          ),
+      ],
     );
   }
 }
