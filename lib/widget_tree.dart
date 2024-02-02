@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:proj/auth.dart';
 import 'package:proj/pages/home_page.dart';
-import 'package:proj/pages/login_register.dart';
+import 'package:proj/pages/login_page.dart';
 import 'package:proj/pages/udid.dart';
 
 class WidgetTree extends StatefulWidget {

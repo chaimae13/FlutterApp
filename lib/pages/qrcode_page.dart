@@ -49,7 +49,8 @@ class QRCODE extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('QR Code Scanner'),
+        title: Text('QR Code Scanner', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue, // Change app bar color
       ),
       body: Center(
         child: Padding(
@@ -58,8 +59,9 @@ class QRCODE extends StatelessWidget {
             onPressed: () => scanQR(context),
             style: ElevatedButton.styleFrom(
               padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+              primary: Colors.green, // Change button color
             ),
-            child: Text('Scan QR Code', style: TextStyle(fontSize: 20)),
+            child: Text('Scan QR Code', style: TextStyle(fontSize: 20, color: Colors.white)),
           ),
         ),
       ),
