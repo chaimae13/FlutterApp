@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_udid/flutter_udid.dart';
-import 'package:proj/pages/qrcode.dart';
-import 'package:proj/pages/testreport.dart';
-import 'package:proj/pages/trucking.dart';
+import 'package:proj/pages/qrcode_page.dart';
+import 'package:proj/pages/covid_page.dart';
+import 'package:proj/pages/nearby.dart';
 import 'package:proj/auth.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({Key? key}) : super(key: key);
   final User? user = Auth().currentUser;
 
-  Future<void> signOut() async {
+  Future<void> signOut(BuildContext context) async {
     await Auth().signOut();
+    Navigator.pop(context); // Pop the home page after signing out
   }
 
   Future<String> _getUDID() async {
@@ -23,62 +24,90 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Welcome, ${user?.email ?? 'User'}'),
+        title: Text(' ${user?.email ?? 'User'}', style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
-            onPressed: signOut,
+            icon: Icon(Icons.logout, color: Colors.white),
+            onPressed: () => signOut(context),
           ),
         ],
+        backgroundColor: Colors.blue, // Change app bar color
       ),
       body: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(10.0),
         child: ListView(
           children: [
             Card(
+              color: Colors.grey, // Change card color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
               child: ListTile(
-                title: Text('Scan QR Code'),
-                leading: Icon(Icons.qr_code),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => QRCODE()));
-                },
+                title: Text('UDID', style: TextStyle(color: Colors.white)),
+                subtitle: FutureBuilder<String>(
+                  future: _getUDID(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Text('Loading...', style: TextStyle(color: Colors.white));
+                    } else if (snapshot.hasData) {
+                      return Text(snapshot.data!, style: TextStyle(color: Colors.white));
+                    } else {
+                      return Text('Error', style: TextStyle(color: Colors.white));
+                    }
+                  },
+                ),
               ),
             ),
-            Card(
-              child: ListTile(
-                title: Text('Tracking'),
-                leading: Icon(Icons.track_changes),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => TRACKING()));
-                },
+            SizedBox(height: 16),
+            Container(
+              height: 100,
+              child: Card(
+                color: Colors.orange, // Change card color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: ListTile(
+                  title: Text('Scan QR Code', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.qr_code, color: Colors.white),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => QRCODE()));
+                  },
+                ),
               ),
             ),
-            Card(
-              child: ListTile(
-                title: Text('Test Report'),
-                leading: Icon(Icons.report),
-                onTap: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => TESTREPORT()));
-                },
+            SizedBox(height: 16),
+            Container(
+              height: 100,
+              child: Card(
+                color: Colors.green, // Change card color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: ListTile(
+                  title: Text('Tracking', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.track_changes, color: Colors.white),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => TRACKING()));
+                  },
+                ),
               ),
             ),
-            FutureBuilder<String>(
-              future: _getUDID(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return ListTile(
-                    title: Text('UDID: Loading...'),
-                  );
-                } else if (snapshot.hasData) {
-                  return ListTile(
-                    title: Text('UDID: ${snapshot.data}'),
-                  );
-                } else {
-                  return ListTile(
-                    title: Text('UDID: Error'),
-                  );
-                }
-              },
+            SizedBox(height: 16),
+            Container(
+              height: 100,
+              child: Card(
+                color: Colors.red, // Change card color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: ListTile(
+                  title: Text('Test Report', style: TextStyle(color: Colors.white)),
+                  leading: Icon(Icons.report, color: Colors.white),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => TESTREPORT()));
+                  },
+                ),
+              ),
             ),
           ],
         ),
